@@ -94,17 +94,19 @@ async def delete_post(
 
     post = post_query.first()
 
+    if not post:
+            raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"post with given id {id} does not exist",
+        )
+
     if post.owner_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized  for this action",
         )
 
-    if not post:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"post with given id {id} does not exist",
-        )
+
     post_query.delete()
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -124,8 +126,15 @@ async def update_post(
     # updated_post = cursor.fetchone()
     # conn.commit()
 
+
     post_query = db.query(models.Post).filter(models.Post.id == id)
     post = post_query.first()
+ 
+    if not post:
+            raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"post with given id {id} does not exist",
+        )
 
     if post.owner_id != user.id:
         raise HTTPException(
@@ -133,11 +142,7 @@ async def update_post(
             detail="Not authorized  for this action",
         )
 
-    if post == None:
-        return HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"post with given id {id} does not exist",
-        )
+
     post_query.update(body.dict(), synchronize_session=False)
     db.commit()
     return post_query.first()
